@@ -1,0 +1,28 @@
+<!-- listar_alunos.html -->
+{% load static %}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="alunos-table">
+        {% for i in alunos %}
+            <tr id="aluno-{{ i.id }}">
+                <td>{{ i.id }}</td>
+                <td>{{ i.nome }}</td>
+                <td>{{ i.email }}</td>
+                <td>
+                    <!-- Aqui você passa o ID do aluno para o botão -->
+                    <button class="btn btn-danger" onclick="deletarAluno({{ i.id }})">Deletar</button>
+                    <a href="/criarAluno?id={{i.id}}" class="btn btn-primary">Editar</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script src="{% static 'js/listar.js' %}"></script>
+

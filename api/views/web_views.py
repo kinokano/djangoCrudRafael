@@ -7,6 +7,9 @@ def login(request):
     return render(request,'login.html')
 
 def home(request):
+    if not request.COOKIES.get('auth_token'):
+            return render(request, 'login.html') 
+    
     alunos = Aluno.objects.all()
     return render(request,'home.html', {'alunos': alunos})
 

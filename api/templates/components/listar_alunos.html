@@ -10,11 +10,11 @@
         </tr>
     </thead>
     <tbody id="alunos-table">
-        {% for i in alunos %}
+        {% for i in usuarios %}
             <tr id="aluno-{{ i.id }}">
                 <td>{{ i.id }}</td>
-                <td>{{ i.nome }}</td>
-                <td>{{ i.email }}</td>
+                <td>{{ i.username }}</td>
+                <td>{{ i.password }}</td>
                 <td>
                     <!-- Aqui você passa o ID do aluno para o botão -->
                     <button class="btn btn-danger" onclick="deletarAluno({{ i.id }})">Deletar</button>

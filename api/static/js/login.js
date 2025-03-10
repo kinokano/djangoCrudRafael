@@ -1,9 +1,10 @@
 async function Login(event){
     event.preventDefault();
     const nome = document.getElementById("nome").value;
-    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
 
-    const response = await apiRequest("/api/verificaLogin", "POST", {nome: nome, email: email}, {"X-CSRFToken": "{{ csrf_token }}"})
+    console.log(senha)
+    const response = await apiRequest("/api/login", "POST", {nome: nome, senha: senha}, {"X-CSRFToken": "{{ csrf_token }}"})
 
     console.log(response)
     if(response.status == 200){

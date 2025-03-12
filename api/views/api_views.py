@@ -1,7 +1,7 @@
-
-from django.contrib.auth import authenticate, get_user_model, login
-from django.contrib.sessions.models import Session
-from rest_framework import status, viewsets
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.hashers import make_password
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,71 +9,71 @@ from ..models import *
 from ..serializers import UserSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+class User(APIView):
+    def get(self, request, id=None):
+        if id:
+            usuario = get_object_or_404(CustomUser, pk=id)
+            serializer = UserSerializer(usuario)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        usuario = CustomUser.objects.all()
+        serializer = UserSerializer(usuario, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        nome = request.data.get('username')
+        senha = request.data.get('password')
+
+        if not nome or not senha:
+            return Response({"error": "Todos os campos são obrigatórios."}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario = CustomUser.objects.create(
+            username=nome,
+            password=make_password(senha),
+            is_active=True,
+            is_aluno=True
+        )
+
+        return Response({"message": "Usuário criado com sucesso!", "id": usuario.id}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, id):
+        usuario = get_object_or_404(CustomUser, pk=id)
+        serializer = UserSerializer(usuario, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request,id):
+        usuario = get_object_or_404(CustomUser, pk=id)
+        if usuario:
+            usuario.delete()
+            return Response({"status": status.HTTP_200_OK})
+        else:
+            return Response({"status": status.HTTP_404_NOT_FOUND})
+                
 
 class Login (APIView):
-    def post(self,request):
+    def post(self, request):
         nome = request.data.get('nome')
         senha = request.data.get('senha')
         user = authenticate(username=nome, password=senha)
         if user:
-            login(request,user)
+            login(request, user)
             return Response({"status": status.HTTP_200_OK})
         else:
-            return Response({"message": "Nao encontrei","status": status.HTTP_404_NOT_FOUND})
+            return Response({"message": "Nao encontrei", "status": status.HTTP_404_NOT_FOUND})
+
 
 class GetDadosUsuarioLogado(APIView):
-    def get(self, request):  # Agora usamos GET, pois não precisamos enviar dados no corpo
-        # Django já captura a sessão automaticamente
+    def get(self, request): 
+
         user_id = request.session.get('_auth_user_id')
 
         if user_id:
             user = CustomUser.objects.filter(id=user_id).first()
-            if user:
-                user_data = {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name
-                }
-                return Response(user_data, status=status.HTTP_200_OK)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response({"error": "Usuário não encontrado ou não autenticado"}, status=status.HTTP_404_NOT_FOUND)
-
-
-# class VerificaLogin(APIView):
-#     def post(self, request):
-#         # Captura os dados enviados no corpo da requisição
-#         nome = request.data.get('nome')
-#         email = request.data.get('email')
-
-#         # Verifica se o aluno existe no banco de dados
-#         try:
-#             # aluno = Aluno.objects.get(nome=nome, email=email)
-    
-#             # Aqui você pode gerar um token ou qualquer outra informação para o cookie
-#             token = str(uuid.uuid4())  # Exemplo de um token gerado aleatoriamente
-
-#             # Criando a resposta e configurando o cookie HttpOnly
-#             response = Response(
-#                 {"message": "Aluno encontrado!", "status": status.HTTP_200_OK},
-#                 status=status.HTTP_200_OK
-#             )
-
-#             # Adiciona o cookie HttpOnly na resposta
-#             response.set_cookie(
-#                 key='auth_token',  # Nome do cookie
-#                 value=token,  # Valor do cookie (pode ser o token JWT ou qualquer outro dado)
-#                 httponly=True,  # Impede o acesso via JavaScript
-#                 secure=True,  # Só envia o cookie em requisições HTTPS
-#                 samesite='Strict',  # Protege contra CSRF
-#                 max_age=3600  # Tempo de expiração (1 hora, por exemplo)
-#             )
-
-#             return response
-
-#         except Aluno.DoesNotExist:  
-#             return Response({"message": "Aluno não encontrado!"}, status=status.HTTP_404_NOT_FOUND)

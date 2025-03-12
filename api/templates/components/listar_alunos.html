@@ -1,5 +1,6 @@
 <!-- listar_alunos.html -->
 {% load static %}
+{% csrf_token %}
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -16,9 +17,8 @@
                 <td>{{ i.username }}</td>
                 <td>{{ i.password }}</td>
                 <td>
-                    <!-- Aqui você passa o ID do aluno para o botão -->
                     <button class="btn btn-danger" onclick="deletarAluno({{ i.id }})">Deletar</button>
-                    <a href="/criarAluno?id={{i.id}}" class="btn btn-primary">Editar</a>
+                    <a href="/criarAluno/{{i.id}}" class="btn btn-primary">Editar</a>
                 </td>
             </tr>
         {% endfor %}
